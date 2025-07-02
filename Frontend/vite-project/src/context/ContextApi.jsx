@@ -3,6 +3,7 @@ import axiosInstance from "../api/axiosInstance";
 import Cookies from 'js-cookie';
 import { Navigate, replace } from "react-router-dom";
 export const ContextApi = createContext();
+import { toast } from 'react-toastify';
 
 const ContextProvider = ({ children }) => {
   const [data, setData] = useState([]);
@@ -10,11 +11,13 @@ const ContextProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
   const [authentication , setAuthentication] = useState(null)
   const [user , setUser] = useState(null)
-
+  const [CartItem , setCartItem] = useState([])
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await axiosInstance.get('profile/'); 
+        const res = await axiosInstance.get('profile/',{
+          withCredentials: true
+        }); 
         setAuthentication(true);
         console.log(res.data)
         setUser(res.data);
@@ -25,13 +28,16 @@ const ContextProvider = ({ children }) => {
         setLoading(false);
       }
     }
-    checkAuth();
+    if (authentication && !user) {
+      checkAuth();
+    }
     
-  }, []);
+  }, [
+    authentication
+  ]);
 
 
-  
-  
+
 
   // Fetch all products
   useEffect(() => {
@@ -48,6 +54,56 @@ const ContextProvider = ({ children }) => {
     };
     fetchProducts();
   }, []);
+  
+
+
+  //Cart items
+useEffect(()=>{
+  const CartItems = async ()=>{
+    try {
+      const res = await axiosInstance.get('cart/')
+    console.log("cart = ",res.data)
+    setAuthentication(true)
+    setCartItem(res.data)
+    } catch (error) {
+      console.error(error);
+
+    }finally{
+      setLoading(false);
+    }
+
+  }
+  CartItems()
+},[])
+
+
+
+//Add to the cart
+const addToCart = async(productId , quantity=1)=>{
+  try {
+    const res = await axiosInstance.post('add-to-cart/',{
+      product_id: productId, quantity 
+  })
+  toast.success("🛒 Item added to cart!");
+    console.log(res.data)
+
+  } catch (error) {
+   console.log(error)  
+   toast.error("❌ Failed to add item.");
+  }finally{
+    setLoading(false);
+  }
+}
+
+
+//Total quantity of items
+const getCartCount = () => {
+  return CartItem.reduce((total, item) => total + item.quantity, 0);
+};
+
+
+
+  
 
   // Load favorites from localStorage
   useEffect(() => {
@@ -88,7 +144,7 @@ const onLogout = async (navigate) => {
 
 
   return (
-    <ContextApi.Provider value={{authentication,user , setLoading ,onLogout, setAuthentication, data, loading, favorites, toggleFavorite }}>
+    <ContextApi.Provider value={{authentication,user ,CartItem,getCartCount, setLoading ,onLogout, setAuthentication, data, loading, favorites, toggleFavorite,addToCart }}>
       {children}
     </ContextApi.Provider>
   );

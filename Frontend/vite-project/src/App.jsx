@@ -10,9 +10,7 @@ import Register from './pages/Register'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import ProtectedRoute from './route/ProtectedRoute'
-import HeroSection from './pages/ProtectedPage/HeroSection'
 import DashboardLayout from './layout/DashboardLayout'
-import ShoppingCart from './component/ShoppingCart'
 
 const App = () => {
   return (
@@ -32,12 +30,10 @@ const App = () => {
 
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard/" element={<DashboardLayout />} >
+          <Route path="/dashboard" element={<DashboardLayout />} >
           <Route path="product" element={<ProductPage />} />
-          <Route index  element={<HeroSection />} />
         </Route>
           <Route path="/dashboard/product-detail/:id" element={<ProductItems />} />
-          <Route path="/dashboard/shoppingcart" element={<ShoppingCart />} />
         </Route>
       </Routes>
     </>

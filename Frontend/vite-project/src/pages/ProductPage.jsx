@@ -6,7 +6,7 @@
 
   const ProductPage = () => {
     const navigate = useNavigate();
-    const { data, loading ,toggleFavorite , favorites ,authentication } = useContext(ContextApi);
+    const { data, loading ,toggleFavorite , favorites ,authentication , CartItem } = useContext(ContextApi);
 
     const CartAuth = ()=>{
       if(!authentication){

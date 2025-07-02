@@ -7,8 +7,10 @@ import { ContextApi } from '../context/ContextApi';
 const Profile = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
-  const { user , onLogout} = useContext(ContextApi)
-  const navigate = useNavigate()
+  const { user, onLogout } = useContext(ContextApi);
+  const navigate = useNavigate();
+
+  if (!user) return null;
 
   return (
     <div className="relative z-50">
@@ -50,16 +52,17 @@ const Profile = () => {
             </ul>
 
             <button
-            onClick={()=>onLogout(navigate)}
-            className="cursor-pointer px-4 py-2 bg-gray-600 hover:bg-black text-white font-semibold rounded-lg shadow transition duration-300"
-          >
-            Logout
-          </button>
+              onClick={() => onLogout(navigate)}
+              className="cursor-pointer px-4 py-2 bg-gray-600 hover:bg-black text-white font-semibold rounded-lg shadow transition duration-300"
+            >
+              Logout
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 };
+
 
 export default Profile;
