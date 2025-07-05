@@ -11,6 +11,7 @@ import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import ProtectedRoute from './route/ProtectedRoute'
 import DashboardLayout from './layout/DashboardLayout'
+// import CartItem from './component/CartItems'
 
 const App = () => {
   return (
@@ -34,6 +35,7 @@ const App = () => {
           <Route path="product" element={<ProductPage />} />
         </Route>
           <Route path="/dashboard/product-detail/:id" element={<ProductItems />} />
+          {/* <Route path="dashboard/cart" element={<CartItem />} /> */}
         </Route>
       </Routes>
     </>

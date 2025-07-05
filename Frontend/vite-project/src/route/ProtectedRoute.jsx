@@ -28,7 +28,7 @@ const ProtectedRoute = () => {
       <Navbar/>
       <Outlet />
     </>
-  ) : (
+  ) : ( 
     <Navigate to="/" replace state={{from:location}} />
   );
 };

@@ -1,65 +1,86 @@
-import React from "react";
-import { ShoppingCart, X, Plus, Minus } from "lucide-react";
+import React, { useContext, useState } from "react";
+import { ShoppingCart, X, Plus, Minus, Trash2 } from "lucide-react";
+import { ContextApi } from "../context/ContextApi";
 
-const CartItem = () => {
+
+const CartItem = ({cartBox , setCartBox}) => {
+  const [quantity, setQuantity] = useState(1);
+  const {cart,totalPrice,deleteCart ,updateCart} = useContext(ContextApi)
+  const handleClose = () => setCartBox(false);
+
+
+
+  const handleDelete = async (item_id)=>{
+    try {
+      await deleteCart(item_id)
+      console.log('Delete')
+    } catch (error) {
+      console.log(error);  
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
-      <div className="absolute inset-0 bg-black bg-opacity-50" />
+    <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${cartBox ? 'translate-x-0' : 'translate-x-full'}`}>
+      
+      {/* Header */}
+      <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <h2 className="text-xl font-semibold text-gray-800">Shopping Cart</h2>
+        <button onClick={handleClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200">
+          <X size={24} className="text-gray-600" />
+        </button>
+      </div>
 
-      <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold">Shopping Cart (2)</h3>
-          <button className="p-2 hover:bg-gray-100 rounded">
-            <X className="w-5 h-5" />
+      {/* Cart Items */}
+      <div className="flex-1 overflow-y-auto p-6">
+        {/* Cart Item */}
+        <div className="space-y-4">
+  {cart.map((item) => (
+    <div key={item.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <img 
+        src={`http://localhost:8000${item.product.image}`} 
+        alt={item.product.name}
+        className="w-16 h-16 object-cover rounded-lg"
+      />
+      <div className="flex-1">
+        <h3 className="font-medium text-gray-800">{item.product.name}</h3>
+        <p className="text-sm font-semibold text-gray-600">In Stock: <span className="text-green-600">{item.product.stock}</span></p>
+        <p className="text-lg font-semibold text-gray-900">${item.product.price}</p>
+      </div>
+      <div className="flex flex-col items-end space-y-2">
+        <button className="text-gray-600 hover:text-gray-800 transition-colors">
+          <Trash2 onClick={()=>handleDelete(item.id)} size={16} />
+        </button>
+        <div className="flex items-center space-x-2">
+          <button  onClick={()=>updateCart(item.id , item.quantity - 1)} className="w-8 h-8 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-black transition-colors">
+            <Minus size={14} />
+          </button>
+          <span className="w-8 text-center font-medium">{item.quantity}</span>
+          <button onClick={()=>updateCart(item.id , item.quantity + 1)} className="w-8 h-8 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-black transition-colors">
+            <Plus size={14} />
           </button>
         </div>
+      </div>
+    </div>
+  ))}
+</div>
 
-        {/* Items */}
-        <div className="flex-1 overflow-y-auto">
-          {/* Empty Cart */}
-          {/* <div className="flex flex-col items-center justify-center p-8 text-gray-500">
-            <ShoppingCart className="w-16 h-16 mb-4" />
-            <p className="text-lg">Your cart is empty</p>
-            <p className="text-sm">Add some products to get started</p>
-          </div> */}
+      </div>
 
-          {/* Cart Items */}
-          <div className="flex items-center gap-4 p-4 border-b border-gray-200">
-            <img
-              src="https://via.placeholder.com/64"
-              alt="Product"
-              className="w-16 h-16 object-cover rounded-lg"
-            />
-            <div className="flex-1">
-              <h4 className="font-semibold text-gray-800">Sample Product</h4>
-              <p className="text-blue-600 font-bold">$99.99</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button className="p-1 hover:bg-gray-100 rounded">
-                <Minus className="w-4 h-4" />
-              </button>
-              <span className="w-8 text-center font-medium">1</span>
-              <button className="p-1 hover:bg-gray-100 rounded">
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-            <button className="p-1 text-red-500 hover:bg-red-50 rounded">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+      {/* Footer */}
+      <div className="border-t border-gray-200 p-6 space-y-4">
+        <div className="flex justify-between items-center text-lg font-semibold">
+          <span>Total:</span>
+          <span className="text-gray-950">${totalPrice}</span>
         </div>
-
-        {/* Footer */}
-        <div className="border-t border-gray-200 p-4">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-lg font-semibold">Total:</span>
-            <span className="text-2xl font-bold text-blue-600">$99.99</span>
-          </div>
-          <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-            Proceed to Checkout
-          </button>
-        </div>
+        <button className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium cursor-pointer hover:bg-gray-700 transition-colors duration-200">
+          Proceed to Checkout
+        </button>
+        <button 
+          onClick={handleClose}
+          className="w-full bg-gray-100 cursor-pointer text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200"
+        >
+          Continue Shopping
+        </button>
       </div>
     </div>
   );

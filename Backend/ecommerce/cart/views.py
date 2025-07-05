@@ -1,18 +1,14 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-
 from .models import Cart, CartItems
 from .serializers import CartItemsSerializer
 from products.models import ProductModel
 
 
-from django.shortcuts import get_object_or_404
-# Create your views here.
-
-
+# View Cart
 class CartView(generics.RetrieveAPIView):
-    serializer_class = CartItemsSerializer  # optional, only used if viewing a single item
+    serializer_class = CartItemsSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
@@ -22,8 +18,7 @@ class CartView(generics.RetrieveAPIView):
         return Response(serializer.data)
 
 
-
-#Add  to the  cart
+# Add to Cart (Fixed version)
 class AddToCartView(generics.CreateAPIView):
     serializer_class = CartItemsSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -40,25 +35,32 @@ class AddToCartView(generics.CreateAPIView):
             return Response({'error': 'Product is out of stock'}, status=status.HTTP_400_BAD_REQUEST)
 
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        cart_item, created = CartItems.objects.get_or_create(
-            cart=cart,
-            product=product,
-            defaults={'quantity': quantity}
-        )
 
-        if not created:
-            new_quantity = cart_item.quantity + quantity
-            if new_quantity > product.stock:
+        # Check if item already exists (even if duplicated)
+        existing_items = CartItems.objects.filter(cart=cart, product=product)
+
+        if existing_items.exists():
+            first_item = existing_items.first()
+            total_quantity = first_item.quantity + quantity
+
+            if total_quantity > product.stock:
                 return Response({'error': 'Product is out of stock'}, status=status.HTTP_400_BAD_REQUEST)
-            cart_item.quantity = new_quantity
-            cart_item.save()
 
-        serializer = CartItemsSerializer(cart_item)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            first_item.quantity = total_quantity
+            first_item.save()
+
+            # Remove duplicates
+            existing_items.exclude(id=first_item.id).delete()
+
+            serializer = CartItemsSerializer(first_item)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            cart_item = CartItems.objects.create(cart=cart, product=product, quantity=quantity)
+            serializer = CartItemsSerializer(cart_item)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-
-#Update View
+# Update Cart Item
 class UpdateCartView(generics.UpdateAPIView):
     serializer_class = CartItemsSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -84,8 +86,7 @@ class UpdateCartView(generics.UpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-  #Removing the Cart Items
-
+# Remove Cart Item
 class RemoveCartItemView(generics.DestroyAPIView):
     serializer_class = CartItemsSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -98,9 +99,3 @@ class RemoveCartItemView(generics.DestroyAPIView):
         cart_item = self.get_object()
         cart_item.delete()
         return Response({'message': 'ok'}, status=status.HTTP_200_OK)
-    
-
-    
-    
-    
-

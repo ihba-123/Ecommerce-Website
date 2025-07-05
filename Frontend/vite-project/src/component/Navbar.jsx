@@ -5,18 +5,22 @@ import FuzzySearch from "./FuzzySearch";
 import FavModal from "./FavModal";
 import { ContextApi } from "../context/ContextApi";
 import Profile from "./Profile";
+import CartItem from "./CartItems";
+// import CartItem from "./CartItems";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [cartCount] = useState(3);
-  const [wishlistCount] = useState(1);
+  const [wishlistCount] = useState(0);
   const [showModal, setShowModal] = useState(false);
-  const { favorites, authentication } = useContext(ContextApi);
+  const { favorites, authentication, cartCount } = useContext(ContextApi);
+  const [cartBox, setCartBox] = useState(false);
   const navigate = useNavigate();
 
   const CartItems = () => {
-    if (authentication) {
-      navigate("/dashboard/shoppingcart");
+    if (!authentication) {
+      return navigate("/login");
+    } else {
+      setCartBox(true);
     }
   };
 
@@ -55,7 +59,7 @@ const Navbar = () => {
             className="cursor-pointer relative text-gray-700 hover:text-black"
           >
             <ShoppingCart size={22} />
-            {cartCount > 0 && (
+            {typeof cartCount === "number" && (
               <div className="absolute -top-1.5 -right-1.5 bg-black text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-semibold">
                 {cartCount}
               </div>
@@ -137,26 +141,11 @@ const Navbar = () => {
           ))}
 
           {/* Wishlist button shown under profile only in mobile */}
-          {authentication && (
-            <div className="pt-2 border-t">
-              <button
-                onClick={() => setShowModal(true)}
-                className="relative flex items-center space-x-2 text-gray-700 hover:text-black"
-              >
-                <Heart />
-                <span>Wishlist</span>
-                {wishlistCount > 0 && (
-                  <div className="absolute -top-1.5 -right-1.5 bg-black text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-semibold">
-                    {favorites.length}
-                  </div>
-                )}
-              </button>
-            </div>
-          )}
         </div>
       )}
 
       <FavModal showModal={showModal} setShowModal={setShowModal} />
+      <CartItem cartBox={cartBox} setCartBox={setCartBox} />
     </nav>
   );
 };

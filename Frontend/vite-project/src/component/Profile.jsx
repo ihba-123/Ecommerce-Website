@@ -7,10 +7,11 @@ import { ContextApi } from '../context/ContextApi';
 const Profile = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
-  const { user, onLogout } = useContext(ContextApi);
+  const { user, onLogout, loading } = useContext(ContextApi);
   const navigate = useNavigate();
 
-  if (!user) return null;
+  if (loading) return null;     // ✅ Wait for loading to finish
+  if (!user) return null;       // ✅ Then check for user
 
   return (
     <div className="relative z-50">
@@ -35,7 +36,9 @@ const Profile = () => {
               {user?.name || 'User Name'} <br />
               {user?.email || 'user@example.com'}
             </p>
+
             <hr className="border-gray-300 my-2" />
+
             <ul className="space-y-1.5 mb-4">
               <li><Link to="/orders" className="text-sm text-slate-500 hover:text-pink-500">Orders</Link></li>
               <li><Link to="/wishlist" className="text-sm text-slate-500 hover:text-pink-500">Wishlist</Link></li>
@@ -63,6 +66,5 @@ const Profile = () => {
     </div>
   );
 };
-
 
 export default Profile;

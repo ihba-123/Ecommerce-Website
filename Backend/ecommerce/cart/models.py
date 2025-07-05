@@ -19,5 +19,8 @@ class CartItems(models.Model):
     create_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
 
+    # class Meta:
+    #     unique_together = ('cart', 'product')  #  Prevent duplicate entries for the same cart+product
+
     def __str__(self):
         return f"{self.quantity} x {self.product.name} in {self.cart.user.email}'s cart"

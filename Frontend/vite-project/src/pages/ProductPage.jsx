@@ -6,13 +6,29 @@
 
   const ProductPage = () => {
     const navigate = useNavigate();
-    const { data, loading ,toggleFavorite , favorites ,authentication , CartItem } = useContext(ContextApi);
+    const { data, loading ,toggleFavorite , favorites ,authentication ,addToCart  } = useContext(ContextApi);
 
-    const CartAuth = ()=>{
-      if(!authentication){
-        navigate('/login')
+
+    const CartAuth = async ({ productId}) => {
+      if (!authentication) {
+        navigate('/login');
+        return;
       }
-    }
+    
+      if (!productId) {
+        console.error("productId is undefined");
+        return;
+      }
+    
+      try {
+        await addToCart(productId, 1); 
+        console.log("Item added to cart:", productId);
+      } catch (err) {
+        console.error("Failed to add item to cart:", err);
+      }
+    };
+    
+    
 
 
     if (loading) return <Skeleton />;
@@ -67,7 +83,7 @@
                       ${product.price}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 text-center">
-                      <button onClick={CartAuth} className="flex-1 cursor-pointer bg-black  text-white text-xs md:text-sm py-3 px-3 rounded-md active:scale-95">
+                      <button onClick={() => CartAuth({ productId: product.id })} className="flex-1 cursor-pointer bg-black  text-white text-xs md:text-sm py-3 px-3 rounded-md active:scale-95">
                         Add to Cart
                       </button>
                       {!authentication?(<Link
