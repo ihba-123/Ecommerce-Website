@@ -24,7 +24,7 @@ const FavModal = ({ showModal, setShowModal }) => {
     console.log("Buying now:", item.name);
   };
 
-  const removeFromFavorites = (productId) => {
+  const deleteCart = (productId) => {
     toggleFavorite(productId);
   };
 
@@ -101,7 +101,7 @@ const FavModal = ({ showModal, setShowModal }) => {
                               Buy Now
                             </button>
                             <button
-                              onClick={() => removeFromFavorites(item.id)}
+                              onClick={() => deleteCart(item.id)}
                               className="bg-red-100 cursor-pointer hover:bg-red-200 text-red-600 px-4 py-2 rounded-xl transition-colors duration-200 flex items-center justify-center"
                             >
                               <Trash2 className="w-4 h-4" />

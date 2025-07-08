@@ -1,10 +1,11 @@
 from django.shortcuts import render
 
 # Create your views here.
-from .serializers import ProductSerializer
-from .models import ProductModel
+from .serializers import ProductSerializer ,FavrouiteSerializer
+from .models import ProductModel ,FavouriteProduct
 from rest_framework.response import Response
-from rest_framework import generics, permissions
+from django.http import Http404
+from rest_framework import generics,status, permissions
 from django.db.models import Q # For complex Query with OR conditions
 class IsAdminStaff(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -50,3 +51,39 @@ class ProductDeleteView(generics.DestroyAPIView):
     serializer_class = ProductSerializer
     lookup_field = 'id'
     permission_classes = [IsAdminStaff()]
+
+
+class FavrouiteItemListView(generics.ListCreateAPIView):
+    serializer_class = FavrouiteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return FavouriteProduct.objects.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        product_id = request.data.get("product")
+
+        if not product_id:
+            return Response({"detail": "Product ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Prevent duplicate
+        if FavouriteProduct.objects.filter(user=user, product_id=product_id).exists():
+            return Response({"detail": "Already favorited."}, status=status.HTTP_200_OK)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class FavrouiteItemDeleteView(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        user = self.request.user
+        product_id = self.kwargs['product_id']
+        try:
+            return FavouriteProduct.objects.get(user=user, product_id=product_id)
+        except FavouriteProduct.DoesNotExist:
+            raise Http404

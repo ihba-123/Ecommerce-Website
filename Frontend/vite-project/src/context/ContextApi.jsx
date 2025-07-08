@@ -1,8 +1,8 @@
 import { createContext, useState, useEffect } from "react";
 import axiosInstance from "../api/axiosInstance";
 export const ContextApi = createContext();
-import  Cookies from "js-cookie";
-
+import Cookies from "js-cookie";
+import { toast } from "react-toastify";
 
 const ContextProvider = ({ children }) => {
   const [data, setData] = useState([]);
@@ -15,11 +15,11 @@ const ContextProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const cookie = Cookies.get('access_token')
-      if(cookie){
+      const cookie = Cookies.get("access_token");
+      if (cookie) {
         setAuthentication(true);
-        await profile()
-      }else{
+        await profile();
+      } else {
         setAuthentication(false);
       }
     } catch (err) {
@@ -31,13 +31,11 @@ const ContextProvider = ({ children }) => {
       setLoading(false);
     }
   };
-  useEffect(()=>{
-    checkAuth()
-  },[])
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
-  
-
-   const profile = async ()=>{
+  const profile = async () => {
     try {
       const res = await axiosInstance.get("profile/", {
         withCredentials: true,
@@ -52,17 +50,13 @@ const ContextProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-   }
-    
+  };
 
-  
-    useEffect(()=>{
-      if(authentication){
-        profile()
-      }
-    },[authentication])
-    
-
+  useEffect(() => {
+    if (authentication) {
+      profile();
+    }
+  }, [authentication]);
 
   //Cart Items
 
@@ -73,8 +67,7 @@ const ContextProvider = ({ children }) => {
       });
       setCart(res.data);
       setCartCount(res.data.length);
-      console.log("Cart Items :-",res.data);
-
+      console.log("Cart Items :-", res.data);
     } catch (error) {
       console.log(error);
     }
@@ -82,68 +75,82 @@ const ContextProvider = ({ children }) => {
 
   useEffect(() => {
     carts();
-  },[]);
+  }, []);
 
+  //Add to cart
+  const addToCart = async (productId, quantity = 1) => {
+    try {
+      const res = await axiosInstance.post(
+        "add-to-cart/",
+        { product_id: productId, quantity },
+        {
+          withCredentials: true,
+        }
+      );
+      console.log("Data-", res.data);
+      setCartCount((res) => res + 1);
+      toast.success("Items added successfully");
+      await carts();
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to add the items");
+    }
+  };
 
+  useEffect(() => {
+    if (authentication) {
+      carts();
+    }
+  }, [authentication]);
 
-//Add to cart
-const addToCart = async (productId, quantity = 1)=>{
-  try {
-    const res = await axiosInstance.post("add-to-cart/", { product_id: productId, quantity },{
-      withCredentials: true
-    })
-    console.log("Data-",res.data);
-    setCartCount(res=>res+1)
-    await carts()
-    
-  } catch (error) {
-    console.log(error);
-  }
-}
+  //Update the cart
+  const updateCart = async (productId, quantity = 1) => {
+    try {
+      const res = await axiosInstance.put(
+        `update-cart/${productId}/`,
+        { quantity },
+        {
+          withCredentials: true,
+        }
+      );
+      console.log("Data-", res.data);
 
-useEffect(() => {
-  if (authentication) {
-    carts();
-  }
-}, [authentication]);
+      setCart((prevCart) =>
+        prevCart.map((item) =>
+          item.id === productId
+            ? { ...item, quantity: res.data.quantity }
+            : item
+        )
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-
-
-//Update the cart
-const updateCart = async (productId, quantity = 1)=>{
-  try {
-    const res = await axiosInstance.put(`update-cart/${productId}/`, { quantity }, {
-      withCredentials: true
-    })
-    console.log("Data-",res.data);
-    await carts()
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-
-
-//Delete the cartItems
-const deleteCart = async (item_id)=>{
-  try {
-    const res = await axiosInstance.delete(`remove-from-cart/${item_id}/`, {
-      withCredentials: true
-    })
-    console.log("Data-",res.data);
-    setCartCount(res=>res-1)
-    await carts()
-  } catch (error) {
-    console.log(error);
-  }
-}
-
+  //Delete the cartItems
+  const deleteCart = async (item_id) => {
+    try {
+      const res = await axiosInstance.delete(`remove-from-cart/${item_id}/`, {
+        withCredentials: true,
+      });
+      console.log("Data-", res.data);
+      setCartCount((res) => res - 1);
+      toast.success("Items deleted successfully");
+      await carts();
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to delete the items");
+    }
+  };
 
   //  Total Price
-  const totalPrice = cart.reduce((total, item) => {
-    return total + item.product.price * item.quantity;
-  }, 0).toFixed(2);
+  const totalPrice = cart
+    .reduce((total, item) => {
+      return total + item.product.price * item.quantity;
+    }, 0)
+    .toFixed(2);
 
+    
 
   // Fetch all products
   useEffect(() => {
@@ -161,24 +168,39 @@ const deleteCart = async (item_id)=>{
     fetchProducts();
   }, []);
 
-  // Load favorites from localStorage
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("favourite") || "[]");
-    setFavorites(stored);
-  }, []);
-
-  // Save favorites to localStorage
-  useEffect(() => {
-    localStorage.setItem("favourite", JSON.stringify(favorites));
-  }, [favorites]);
-
-  const toggleFavorite = (productId) => {
-    setFavorites((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
-    );
+  //Favrouite part
+  const favrouite = async () => {
+    try {
+      const res = await axiosInstance.get("favorites/");
+      // Extract only product IDs
+      const favIds = res.data.map((fav) => fav.product);
+      setFavorites(favIds); // Now it's an array of product IDs
+    } catch (error) {
+      console.log(error);
+    }
   };
+
+  //Add to favrouite
+  const toggleFavorite = async (productId) => {
+    try {
+      if (favorites.includes(productId)) {
+        // Remove from favorite
+        await axiosInstance.delete(`favorites/${productId}/`);
+        setFavorites((prev) => prev.filter((id) => id !== productId));
+      } else {
+        // Add to favorite
+        await axiosInstance.post("favorites/", { product: productId });
+        setFavorites((prev) => [...prev, productId]);
+      }
+    } catch (err) {
+      console.error("Error toggling favorite", err);
+    }
+  };
+
+  useEffect(() => {
+    favrouite();
+    
+  }, [authentication]);
 
   // call this on logout button click
   const onLogout = async (navigate) => {
@@ -210,7 +232,7 @@ const deleteCart = async (item_id)=>{
         cartCount,
         updateCart,
         deleteCart,
-        totalPrice
+        totalPrice,
       }}
     >
       {children}

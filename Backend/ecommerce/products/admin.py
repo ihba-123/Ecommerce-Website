@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ProductModel , ProductImage
+from .models import ProductModel , ProductImage ,FavouriteProduct
 
 # Register your models here.
 
@@ -21,4 +21,11 @@ class PersonAdmin(admin.ModelAdmin):
   list_display = [
     'product',
     'image',
+  ]
+
+@admin.register(FavouriteProduct)
+class PersonAdmin(admin.ModelAdmin):
+  list_display = [
+    'user',
+    'product'
   ]

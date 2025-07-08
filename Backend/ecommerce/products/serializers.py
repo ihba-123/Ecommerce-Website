@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProductModel , ProductImage
+from .models import ProductModel , ProductImage ,FavouriteProduct
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,3 +11,9 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductModel
         fields = '__all__'
+
+class FavrouiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FavouriteProduct
+        fields = ['id' ,'product']
+        
