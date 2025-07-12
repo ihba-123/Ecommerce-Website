@@ -24,29 +24,33 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const refreshToken = Cookies.get("refresh_token");
 
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      Cookies.get('refresh_token')
+      refreshToken
     ) {
       originalRequest._retry = true;
+
       try {
-        const res = await axiosInstance.post('token/refresh/', {
-          refresh: Cookies.get('refresh_token'),
-        });
+        const res = await axios.post(
+          'http://localhost:8000/api/token/refresh/',
+          { refresh: refreshToken },
+          { withCredentials: true }
+        );
 
         const newAccessToken = res.data.access;
-        Cookies.set('access_token', newAccessToken, {
-          expires: 5 / 1440, // match backend expiration (5 minutes)
+        Cookies.set("access_token", newAccessToken, {
+          expires: 5 / 1440,
         });
 
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        Cookies.remove('access_token');
-        Cookies.remove('refresh_token');
-        window.location.href = '/login';
+        Cookies.remove("access_token");
+        Cookies.remove("refresh_token");
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }
@@ -54,5 +58,6 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default axiosInstance;

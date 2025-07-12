@@ -1,12 +1,13 @@
 from django.shortcuts import render
 
 # Create your views here.
-from .serializers import ProductSerializer ,FavrouiteSerializer
-from .models import ProductModel ,FavouriteProduct
+from .serializers import ProductSerializer ,FavrouiteSerializer ,CategorySerializer
+from .models import ProductModel ,FavouriteProduct ,Category
 from rest_framework.response import Response
 from django.http import Http404
 from rest_framework import generics,status, permissions
 from django.db.models import Q # For complex Query with OR conditions
+from rest_framework.views import APIView
 class IsAdminStaff(permissions.BasePermission):
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_authenticated and request.user.is_staff)
@@ -87,3 +88,26 @@ class FavrouiteItemDeleteView(generics.DestroyAPIView):
             return FavouriteProduct.objects.get(user=user, product_id=product_id)
         except FavouriteProduct.DoesNotExist:
             raise Http404
+        
+
+
+# Category section
+class CategoryView(APIView):
+    def get(self, request):
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+
+class CategoryItems(APIView):
+    def get(self, request, category_name):
+        try:
+            category = Category.objects.get(name__iexact=category_name)
+        except Category.DoesNotExist:
+            return Response({"detail": "Category not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        products = ProductModel.objects.filter(category=category)
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

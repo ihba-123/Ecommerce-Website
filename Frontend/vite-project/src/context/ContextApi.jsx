@@ -3,6 +3,7 @@ import axiosInstance from "../api/axiosInstance";
 export const ContextApi = createContext();
 import Cookies from "js-cookie";
 import { toast } from "react-toastify";
+import { useParams } from "react-router-dom";
 
 const ContextProvider = ({ children }) => {
   const [data, setData] = useState([]);
@@ -12,7 +13,7 @@ const ContextProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [cartCount, setCartCount] = useState(0);
-
+  const [categories, setCategories] = useState([]);
   const checkAuth = async () => {
     try {
       const cookie = Cookies.get("access_token");
@@ -53,7 +54,7 @@ const ContextProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (authentication) {
+    if (authentication == true) {
       profile();
     }
   }, [authentication]);
@@ -65,8 +66,10 @@ const ContextProvider = ({ children }) => {
       const res = await axiosInstance.get("cart/", {
         withCredentials: true,
       });
+      setAuthentication(true)
       setCart(res.data);
       setCartCount(res.data.length);
+
       console.log("Cart Items :-", res.data);
     } catch (error) {
       console.log(error);
@@ -74,8 +77,10 @@ const ContextProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    carts();
-  }, []);
+    if (authentication === true) {
+      carts();
+    }
+  }, [authentication]);
 
   //Add to cart
   const addToCart = async (productId, quantity = 1) => {
@@ -97,11 +102,7 @@ const ContextProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    if (authentication) {
-      carts();
-    }
-  }, [authentication]);
+
 
   //Update the cart
   const updateCart = async (productId, quantity = 1) => {
@@ -198,9 +199,35 @@ const ContextProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    favrouite();
+    if (authentication === true){
+      favrouite();
+
+    }
     
   }, [authentication]);
+
+
+
+  //Category section
+  useEffect(()=>{
+    const Category = async ()=>{
+    try {
+      const res = await axiosInstance.get('category/')
+      console.log(res.data)
+      setCategories(res.data)
+      
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  Category()
+  },[])
+
+
+
+
+
+  
 
   // call this on logout button click
   const onLogout = async (navigate) => {
@@ -233,6 +260,7 @@ const ContextProvider = ({ children }) => {
         updateCart,
         deleteCart,
         totalPrice,
+        categories
       }}
     >
       {children}

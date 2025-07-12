@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Home, ArrowLeft } from 'lucide-react';
+import { ContextApi } from '../context/ContextApi';
 
 const NotFound = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const {authentication} = useContext(ContextApi)
 
   useEffect(() => {
     setIsVisible(true);
@@ -11,6 +13,16 @@ const NotFound = () => {
   const handleGoBack = () => {
     window.history.back();
   };
+
+
+  const NewRegirect = ()=>{
+    if(!authentication){
+      window.location.href = '/';
+    }else{
+      window.location.href = '/dashboard';
+    }
+  }
+
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
@@ -34,7 +46,7 @@ const NotFound = () => {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={NewRegirect}
             className="group px-6 py-3 bg-white text-black font-medium hover:bg-gray-200 transition-all duration-200 flex items-center gap-2"
           >
             <Home className="w-4 h-4" />

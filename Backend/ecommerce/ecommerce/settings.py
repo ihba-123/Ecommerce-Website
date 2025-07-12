@@ -71,6 +71,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # React default port
 ]
 
+# CSRF settings if you're using SessionAuth
+CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
+
 CORS_ALLOW_CREDENTIALS = True 
 
 WSGI_APPLICATION = 'ecommerce.wsgi.application'
@@ -84,7 +87,7 @@ WSGI_APPLICATION = 'ecommerce.wsgi.application'
 DATABASES = {
      'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Ecommerce',
+        'NAME': 'ecommerce',
         'USER': 'postgres',
         'PASSWORD': 'admin123',
         'HOST': 'localhost',

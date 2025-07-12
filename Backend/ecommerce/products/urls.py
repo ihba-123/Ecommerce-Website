@@ -5,7 +5,9 @@ from .views import (
     ProductUpdateView,
     ProductDeleteView,
     FavrouiteItemListView,
-    FavrouiteItemDeleteView
+    FavrouiteItemDeleteView,
+    CategoryItems,
+    CategoryView
 )
     
 urlpatterns = [
@@ -18,5 +20,8 @@ urlpatterns = [
     path('product-delete/<int:id>/', ProductDeleteView.as_view(), name='product-delete'),
     path('favorites/', FavrouiteItemListView.as_view(), name='favorite-list-create'),
     path('favorites/<int:product_id>/', FavrouiteItemDeleteView.as_view(), name='favorite-delete'),
+    path('category/', CategoryView.as_view(), name='category-items'),
+    path('category/<str:category_name>/', CategoryItems.as_view(), name='category-items'),
+
 
 ]

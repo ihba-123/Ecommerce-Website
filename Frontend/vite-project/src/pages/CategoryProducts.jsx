@@ -1,31 +1,50 @@
-import React, { useContext, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ContextApi } from "../context/ContextApi";
-import Skeleton from "../component/ui/Skeleton";
+import axiosInstance from "../api/axiosInstance";
 import Favorites from "../component/Favorites";
+import Skeleton from "../component/ui/Skeleton";
 
-const ProductPage = () => {
+const CategoryProducts = () => {
+  const { categoryName } = useParams();
   const navigate = useNavigate();
+
+  // Your global context
   const {
-    data,
-    loading,
     favorites,
     toggleFavorite,
     authentication,
     addToCart,
   } = useContext(ContextApi);
 
+  const [categoryProducts, setCategoryProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchCategoryProducts = async () => {
+      try {
+        setLoading(true);
+        const res = await axiosInstance.get(`category/${categoryName}/`);
+        setCategoryProducts(res.data);
+      } catch (error) {
+        console.error("Failed to fetch category products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategoryProducts();
+  }, [categoryName]);
+
   const CartAuth = async ({ productId }) => {
     if (!authentication) {
       navigate("/login");
       return;
     }
-
     if (!productId) {
       console.error("productId is undefined");
       return;
     }
-
     try {
       await addToCart(productId, 1);
       console.log("Item added to cart:", productId);
@@ -34,22 +53,29 @@ const ProductPage = () => {
     }
   };
 
-  if (loading || !data || data.length === 0) return <Skeleton />;
+  if (loading) return <Skeleton />;
+
+  if (!categoryProducts.length)
+    return (
+      <div className="text-center py-10">
+        No products found in category "{categoryName}".
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-white py-6 px-4 sm:px-6 md:px-10">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            🛍 Discover Our Collection
+            🛍 Products in "{categoryName}"
           </h2>
           <p className="mt-2 text-gray-500 text-sm sm:text-base">
-            Find products that match your vibe and style.
+            Browse products matching your style.
           </p>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5">
-          {data.map((product, index) => {
+          {categoryProducts.map((product, index) => {
             const isFavorite = favorites.includes(product.id);
             return (
               <div
@@ -62,19 +88,19 @@ const ProductPage = () => {
                 {/* Image */}
                 <div className="aspect-[4/3] lg:aspect-[5/4] overflow-hidden rounded-lg">
                   <img
-                    src={product.image}
+                    src={`http://localhost:8000${product.image}`}
                     alt={product.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
 
                 {/* Favorite Button */}
-                {authentication ? (
+                {authentication && (
                   <Favorites
                     isFavorite={isFavorite}
                     onToggle={() => toggleFavorite(product.id)}
                   />
-                ) : null}
+                )}
 
                 {/* Info */}
                 <div className="p-3 md:p-4">
@@ -82,7 +108,7 @@ const ProductPage = () => {
                     {product.name}
                   </h3>
                   <p className="text-sm md:text-base font-bold text-gray-900 mb-3">
-                    ${product.price}
+                    $ {product.price}
                   </p>
                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 text-center">
                     <button
@@ -91,21 +117,12 @@ const ProductPage = () => {
                     >
                       Add to Cart
                     </button>
-                    {!authentication ? (
-                      <Link
-                        to={`/product-detail/${product.id}`}
-                        className="px-3 border border-gray-300 text-gray-600 py-2 rounded-md text-xs md:text-sm active:scale-95"
-                      >
-                        View
-                      </Link>
-                    ) : (
-                      <Link
-                        to={`product-detail/${product.id}`}
-                        className="px-3 border border-gray-300 text-gray-600 py-2 rounded-md text-xs md:text-sm active:scale-95"
-                      >
-                        View
-                      </Link>
-                    )}
+                    <Link
+                      to={`/product-detail/${product.id}`}
+                      className="px-3 border border-gray-300 text-gray-600 py-2 rounded-md text-xs md:text-sm active:scale-95"
+                    >
+                      View
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -115,19 +132,19 @@ const ProductPage = () => {
       </div>
 
       <style>{`
-          @keyframes fadeInUp {
-            from {
-              opacity: 0;
-              transform: translateY(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
           }
-        `}</style>
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 };
 
-export default ProductPage;
+export default CategoryProducts;
