@@ -1,145 +1,188 @@
-import React, { useContext, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User, Menu, X, Heart } from "lucide-react";
-import FuzzySearch from "./FuzzySearch";
-import FavModal from "./FavModal";
-import { ContextApi } from "../context/ContextApi";
-import Profile from "./Profile";
-import CartItem from "./CartItems";
+import { useContext, useState, useEffect } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { ShoppingCart, User, Menu, X, Heart } from "lucide-react"
+import FuzzySearch from "./FuzzySearch"
+import FavModal from "./FavModal"
+import { ContextApi } from "../context/ContextApi"
+import Profile from "./Profile"
+import CartItem from "./CartItems"
 
 const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const { favorites, authentication, cartCount } = useContext(ContextApi);
-  const [cartBox, setCartBox] = useState(false);
-  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
+  const { favorites, authentication, cartCount } = useContext(ContextApi)
+  const [cartBox, setCartBox] = useState(false)
+  const navigate = useNavigate()
 
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Categories", path: "category" },
+    { name: "Categories", path: "category" }
+  ]
 
-    { name: "About", path: "about" },
-    { name: "Contact", path: "contact" },
-    { name: "Orders", path: "orders" },
-  ];
+  const protectedBase = authentication ? "/dashboard" : ""
 
-  const protectedBase = authentication ? "/dashboard" : "";
+  // Handle scroll effect with hide/show functionality
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+
+      // Set scrolled state for styling
+      setIsScrolled(currentScrollY > 10)
+
+      // Hide/show navbar based on scroll direction
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down & past 100px
+        setIsVisible(false)
+      } else {
+        // Scrolling up or at top
+        setIsVisible(true)
+      }
+
+      setLastScrollY(currentScrollY)
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [lastScrollY])
 
   const handleCartClick = () => {
     if (!authentication) {
-      navigate("/login");
+      navigate("/login")
     } else {
-      setCartBox(true);
+      setCartBox(true)
     }
-  };
+  }
 
   return (
-    <nav className="bg-white shadow-md w-full z-50">
-      {/* Top Navbar */}
-      <div className="flex justify-between items-center px-4 py-3 md:px-8">
-        {/* Logo */}
-        <h1 className="text-2xl font-bold text-black">ShopMart</h1>
+    <>
+      <nav
+        className={`fixed top-0 left-0 right-0 w-full z-40 transition-all duration-300 ${
+          isVisible ? "translate-y-0" : "-translate-y-full"
+        } ${
+          isScrolled
+            ? "bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50"
+            : "bg-white shadow-sm border-b border-gray-200"
+        }`}
+      >
+        {/* Top Navbar */}
+        <div className="flex items-center justify-between px-4 md:px-6 py-3">
+          {/* Logo */}
+          <div className="flex items-center">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">ShopMart</h1>
+          </div>
 
-        {/* Search - hidden on mobile */}
-        <div className="hidden md:block w-1/2">
-          <FuzzySearch />
-        </div>
+          {/* Search - Centered and visible on desktop */}
+          <div className="hidden md:flex flex-1 justify-center max-w-md mx-8">
+            <FuzzySearch />
+          </div>
 
-        {/* Icons */}
-        <div className="flex items-center space-x-4">
-          {authentication && (
+          {/* Right-side Icons */}
+          <div className="flex items-center space-x-3"> 
+            {authentication && (
+              <button
+                onClick={() => setShowModal(true)}
+                className="relative p-2 text-gray-600 hover:text-gray-900 transition-all duration-200 hover:bg-gray-50 rounded-lg"
+              >
+                <Heart size={20} />
+                {favorites.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-gray-900 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-semibold">
+                    {favorites.length}
+                  </span>
+                )}
+              </button>
+            )}
+
             <button
-              onClick={() => setShowModal(true)}
-              className="relative text-gray-700 hover:text-black"
+              onClick={handleCartClick}
+              className="relative p-2 text-gray-600 hover:text-gray-900 transition-all duration-200 hover:bg-gray-50 rounded-lg"
             >
-              <Heart />
-              {favorites.length > 0 && (
-                <div className="absolute -top-1.5 -right-1.5 bg-black text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-semibold">
-                  {favorites.length}
-                </div>
+              <ShoppingCart size={20} />
+              {typeof cartCount === "number" && (
+                <span className="absolute -top-1 -right-1 bg-gray-900 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-semibold">
+                  {authentication ? cartCount : 0}
+                </span>
               )}
             </button>
-          )}
 
-          <button
-            onClick={handleCartClick}
-            className="relative text-gray-700 hover:text-black"
-          >
-            <ShoppingCart size={22} />
-            {typeof cartCount === "number" && (
-              <div className="absolute -top-1.5 -right-1.5 bg-black text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-semibold">
-                {authentication ? cartCount : 0}
-              </div>
+            {authentication ? (
+              <Profile />
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-gray-900 font-medium transition-all duration-200 hover:bg-gray-50 rounded-lg"
+              >
+                <span className="text-sm">Login</span>
+                <User size={18} />
+              </Link>
             )}
-          </button>
 
-          {authentication ? (
-            <Profile />
-          ) : (
-            <Link
-              to="/login"
-              className="flex items-center gap-1 text-gray-700 hover:text-black font-semibold"
+            {/* Hamburger Menu (Mobile Only) */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-all duration-200 hover:bg-gray-50 rounded-lg"
             >
-              <span>Login</span>
-              <User size={20} />
-            </Link>
-          )}
-
-          {/* Mobile Menu Icon */}
-          <div className="md:hidden">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Divider */}
-      <div className="border-t border-gray-200" />
-
-      {/* Desktop Links */}
-      <div className="hidden md:flex px-8 py-2 space-x-6 text-sm font-medium">
-        {navLinks.map(({ name, path }) => {
-          const fullPath =
-            path === "/" ? (authentication ? "/dashboard" : "/") : `${protectedBase}/${path}`;
-          return (
-            <Link
-              key={name}
-              to={fullPath}
-              className="text-gray-700 hover:text-black transition"
-            >
-              {name}
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden px-4 py-4 space-y-4 border-t border-gray-200 bg-white shadow-md">
-          <FuzzySearch />
+        {/* Desktop Navigation Links - Centered */}
+        <div className="hidden md:flex  gap-6 py-2 px-4 border-t border-gray-100">
           {navLinks.map(({ name, path }) => {
-            const fullPath =
-              path === "/" ? (authentication ? "/dashboard" : "/") : `${protectedBase}/${path}`;
+            const fullPath = path === "/" ? (authentication ? "/dashboard" : "/") : `${protectedBase}/${path}`
             return (
               <Link
                 key={name}
                 to={fullPath}
-                onClick={() => setIsMenuOpen(false)}
-                className="block text-gray-700 hover:text-black font-medium"
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-200 rounded-md hover:bg-gray-50"
               >
                 {name}
               </Link>
-            );
+            )
           })}
         </div>
-      )}
 
-      {/* Modals */}
-      <FavModal showModal={showModal} setShowModal={setShowModal} />
-      <CartItem cartBox={cartBox} setCartBox={setCartBox} />
-    </nav>
-  );
-};
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden border-t border-gray-100 bg-white">
+            <div className="px-4 py-4 space-y-3">
+              {/* Mobile Search */}
+              <div className="mb-4">
+                <FuzzySearch />
+              </div>
 
-export default Navbar;
+              {/* Mobile Navigation Links */}
+              {navLinks.map(({ name, path }) => {
+                const fullPath = path === "/" ? (authentication ? "/dashboard" : "/") : `${protectedBase}/${path}`
+                return (
+                  <Link
+                    key={name}
+                    to={fullPath}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-3 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors duration-200 rounded-md hover:bg-gray-50"
+                  >
+                    {name}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </nav>
+
+      {/* Spacer to prevent content from hiding behind fixed navbar */}
+      <div className="h-[60px] md:h-[72px]"></div>
+
+      {/* Modals - Higher z-index to appear above navbar */}
+      <div className="relative z-50">
+        <FavModal showModal={showModal} setShowModal={setShowModal} />
+        <CartItem cartBox={cartBox} setCartBox={setCartBox} />
+      </div>
+    </>
+  )
+}
+
+export default Navbar

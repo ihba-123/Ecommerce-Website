@@ -19,7 +19,6 @@ const ContextProvider = ({ children }) => {
       const cookie = Cookies.get("access_token");
       if (cookie) {
         setAuthentication(true);
-        await profile();
       } else {
         setAuthentication(false);
       }

@@ -59,7 +59,7 @@ class RegistrationView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# ✅ Login View
+#  Login View
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -98,7 +98,7 @@ class UserLoginView(APIView):
         return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# ✅ Logout View
+# Logout View
 class Logout(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -112,7 +112,7 @@ class Logout(APIView):
         return response
 
 
-# ✅ User Profile View
+#  User Profile View
 class UserProfile(APIView):
     permission_classes = [IsAuthenticated]
 

@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework_simplejwt.token_blacklist',
     'account',
     'products',
     'cart',
@@ -69,10 +70,17 @@ TEMPLATES = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # React default port
+    "https://d9b76e62fadc.ngrok-free.app",
 ]
 
+# Always include localhost for dev
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".ngrok-free.app"]
+
+
 # CSRF settings if you're using SessionAuth
-CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
+CSRF_TRUSTED_ORIGINS = [ "https://*.ngrok-free.app", "http://localhost:5173"]
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 CORS_ALLOW_CREDENTIALS = True 
 

@@ -21,7 +21,8 @@ print(config('STRIPE_WEBHOOK_SECRET'))
 
 class CreateOrderView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-
+    
+    
     def post(self, request):
         cart = get_object_or_404(Cart, user=request.user)
 
@@ -57,8 +58,12 @@ class CreateOrderView(APIView):
 
             cart.items.all().delete()
 
+            
+
         serializer = OrderSerializer(order)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        data = serializer.data
+        data['order_id'] = order.id
+        return Response(data, status=status.HTTP_201_CREATED)
 
 
 class UserOrderListView(generics.ListAPIView):

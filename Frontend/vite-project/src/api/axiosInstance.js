@@ -6,9 +6,10 @@ export const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true,
+  withCredentials: true, // Allows cookies (refresh token, etc.)
 });
 
+// Add access token to every request
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = Cookies.get('access_token');
@@ -20,6 +21,7 @@ axiosInstance.interceptors.request.use(
   (err) => Promise.reject(err)
 );
 
+// Handle expired access token automatically
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -37,17 +39,26 @@ axiosInstance.interceptors.response.use(
         const res = await axios.post(
           'http://localhost:8000/api/token/refresh/',
           { refresh: refreshToken },
-          { withCredentials: true }
+          {
+            headers: { 'Content-Type': 'application/json' },
+            withCredentials: true,
+          }
         );
 
         const newAccessToken = res.data.access;
+
+        // Store new access token (expires in 5 mins = 5/1440 days)
         Cookies.set("access_token", newAccessToken, {
           expires: 5 / 1440,
+          secure: false, // Set true in production if using HTTPS
+          sameSite: 'Lax',
         });
 
+        // Retry the original request with new access token
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
+        // Token refresh failed → clear tokens and redirect
         Cookies.remove("access_token");
         Cookies.remove("refresh_token");
         window.location.href = "/login";
@@ -58,6 +69,5 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
 
 export default axiosInstance;
