@@ -41,14 +41,7 @@ const Profile = () => {
   if (loading) return null
   if (!user) return null
 
-  const menuItems = [
-    {
-      section: "Section",
-      items: [
-        { name: "Contact Us", path: "/contact", icon: MessageCircle, color: "text-purple-500" },
-      ],
-    },
-  ]
+
 
   const getInitials = (name) => {
     return (
@@ -122,49 +115,7 @@ const Profile = () => {
                 </div>
               </div>
 
-              {/* Menu Items */}
-              <div className="p-3 max-h-80 overflow-y-auto">
-                {menuItems.map((section, sectionIndex) => (
-                  <div key={section.section} className="mb-4 last:mb-0">
-                    <div className="flex items-center gap-2 px-3 py-2 mb-2">
-                      <div className="w-1 h-4 bg-gradient-to-b from-gray-400 to-gray-600 rounded-full"></div>
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        {section.section}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1">
-                      {section.items.map((item, itemIndex) => (
-                        <motion.div
-                          key={item.name}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{
-                            delay: (sectionIndex * section.items.length + itemIndex) * 0.05,
-                            duration: 0.2,
-                          }}
-                        >
-                          <Link
-                            to={item.path}
-                            onClick={() => setDropdownOpen(false)}
-                            className="group flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:text-gray-900 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 rounded-xl transition-all duration-200"
-                          >
-                            <div
-                              className={`w-8 h-8 ${item.color} bg-gray-50 group-hover:bg-white rounded-lg flex items-center justify-center group-hover:scale-110 transition-all duration-200`}
-                            >
-                              <item.icon className="w-4 h-4" />
-                            </div>
-                            <span className="text-sm font-medium flex-1">{item.name}</span>
-                            <div className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                              <div className="w-2 h-2 border-t border-r border-gray-400 rotate-45 mx-auto"></div>
-                            </div>
-                          </Link>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+             
 
               {/* Footer */}
               <div className="p-4 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100">
